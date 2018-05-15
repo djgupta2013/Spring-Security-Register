@@ -57,15 +57,21 @@ public class RegisterController {
 		
 		System.out.println(userExists);
 		
-		if (userExists != null) {
-			modelAndView.addObject("alreadyRegisteredMessage", "Oops!  There is already a user registered with the email provided.");
+		if (userExists != null&& userExists.getEnabled()==true) {
+			modelAndView.addObject("alreadyRegisteredMessage", "Oops!  This "+user.getEmail()+" is already  registered ");
 			modelAndView.setViewName("register");
 			bindingResult.reject("email");
 		}
 			
-		if (bindingResult.hasErrors()) { 
+		/*if (bindingResult.hasErrors()) { 
 			modelAndView.setViewName("register");		
-		} else { // new user so we create user and send confirmation e-mail
+		}*/ else { // new user so we create user and send confirmation e-mail
+			if(userExists !=null) {
+			if(userExists.getEnabled()==false) {
+				System.out.println("hello");
+				userService.deleteByEmail1(user.getEmail());
+			}
+			}
 					
 			// Disable user until they click on confirmation link in email
 		    user.setEnabled(false);
@@ -146,4 +152,41 @@ public class RegisterController {
 		return modelAndView;		
 	}
 	
+	/*@RequestMapping(value="/login", method = RequestMethod.GET)
+	public ModelAndView showLoginPage(ModelAndView modelAndView,User user) { 
+		modelAndView.addObject("user", user);
+		modelAndView.setViewName("login");
+		return modelAndView;
+	}
+	
+	// Process form input data
+		@RequestMapping(value = "/login", method = RequestMethod.POST)
+		public ModelAndView processLoginForm(ModelAndView modelAndView, @Valid User user, BindingResult bindingResult,
+				HttpServletRequest request) {
+			
+			
+			return modelAndView;
+			
+		}*/
+	
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
