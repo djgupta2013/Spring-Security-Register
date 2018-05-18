@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
@@ -9,7 +10,7 @@
   <meta name="author" content="Amir Boroumand" />
   <!-- <link rel="icon" href="favicon.ico" /> -->
 
-  <title>User Registration with Spring Boot</title>
+  <title>Forgot Password</title>
 
   <!-- Bootstrap core CSS -->
   <link href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -39,7 +40,7 @@
         role="alert" th:text=${invalidToken}></div>
 
       <form th:if="!${invalidToken}" class="m-t" id="passwordForm" role="form" action="#"
-       th:object="${setPassword}" th:action="@{/confirm}" method="post">
+       th:object="${setPassword}" th:action="@{/forgotPass}" method="post">
 
         <input type="hidden" name="token" th:value=${confirmationToken}  >
 
@@ -164,7 +165,7 @@
 		    });
 		});
 		</script>
-	});
+	
   
 
 </body>

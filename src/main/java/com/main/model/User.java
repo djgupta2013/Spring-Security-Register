@@ -11,6 +11,7 @@ import org.hibernate.validator.constraints.Email;
 import org.hibernate.validator.constraints.NotEmpty;
 import org.springframework.data.annotation.Transient;
 
+@SuppressWarnings("deprecation")
 @Entity
 @Table(name = "user")
 public class User {
@@ -19,6 +20,7 @@ public class User {
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	@Column(name = "id")
 	private int id;
+	
 	
 	@Column(name = "email", nullable = false, unique = true)
 	@Email(message = "Please provide a valid e-mail")
@@ -29,9 +31,11 @@ public class User {
 	@Transient
 	private String password;
 	
+	
 	@Column(name = "first_name")
 	@NotEmpty(message = "Please provide your first name")
 	private String firstName;
+	
 	
 	@Column(name = "last_name")
 	@NotEmpty(message = "Please provide your last name")

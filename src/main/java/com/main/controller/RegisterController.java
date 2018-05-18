@@ -1,13 +1,12 @@
 package com.main.controller;
 
 import java.util.Map;
-import java.util.UUID;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.transaction.Transactional;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -18,19 +17,20 @@ import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.main.model.User;
-import com.main.service.EmailService;
-import com.main.service.UserService;
+import com.main.serviceImpl.EmailServiceImpl;
+import com.main.serviceImpl.UserServiceImpl;
 import com.nulabinc.zxcvbn.Strength;
 import com.nulabinc.zxcvbn.Zxcvbn;
 
 @Controller
+@Transactional
 public class RegisterController {
 	@Autowired
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	@Autowired
-	private UserService userService;
+	private UserServiceImpl userService;
 	@Autowired
-	private EmailService emailService;
+	private EmailServiceImpl emailService;
 	               
 //	@Autowired
 //	public RegisterController(BCryptPasswordEncoder bCryptPasswordEncoder,
@@ -53,47 +53,29 @@ public class RegisterController {
 	public ModelAndView processRegistrationForm(ModelAndView modelAndView, @Valid User user, BindingResult bindingResult, HttpServletRequest request) {
 				
 		// Lookup user in database by e-mail
-		User userExists = userService.findByEmail(user.getEmail());
 		
-		System.out.println(userExists);
+		User userExists=userService.findByEmail(user.getEmail());
 		
 		if (userExists != null&& userExists.getEnabled()==true) {
 			modelAndView.addObject("alreadyRegisteredMessage", "Oops!  This "+user.getEmail()+" is already  registered ");
 			modelAndView.setViewName("register");
 			bindingResult.reject("email");
 		}
-			
-		/*if (bindingResult.hasErrors()) { 
-			modelAndView.setViewName("register");		
-		}*/ else { // new user so we create user and send confirmation e-mail
-			if(userExists !=null) {
-			if(userExists.getEnabled()==false) {
-				System.out.println("hello");
+		else { 
+			if(userExists != null&& userExists.getEnabled()==false) {
 				userService.deleteByEmail1(user.getEmail());
 			}
-			}
-					
-			// Disable user until they click on confirmation link in email
-		    user.setEnabled(false);
-		      
-		    // Generate random 36-character string token for confirmation link
-		    user.setConfirmationToken(UUID.randomUUID().toString());
-		        
-		    userService.saveUser(user);
+				if(userService.findByEmail(user.getEmail())== null)
+				{
+					user.setEnabled(false);
+					userService.saveUser(user);
+				}
 				
-			String appUrl = request.getScheme() + "://" + request.getServerName()+":8080";
-			
-			SimpleMailMessage registrationEmail = new SimpleMailMessage();
-			registrationEmail.setTo(user.getEmail());
-			registrationEmail.setSubject("Registration Confirmation");
-			registrationEmail.setText("To confirm your e-mail address, please click the link below:\n"
-					+ appUrl + "/confirm?token=" + user.getConfirmationToken());
-			registrationEmail.setFrom("noreply@domain.com");
-			
-			emailService.sendMail(registrationEmail);
-			
-			modelAndView.addObject("confirmationMessage", "A confirmation e-mail has been sent to " + user.getEmail());
-			modelAndView.setViewName("register");
+			 	
+			 	emailService.sendMail(user.getEmail(),user.getConfirmationToken(),request,"confirm");
+			 	
+			 	modelAndView.addObject("confirmationMessage", "A confirmation e-mail has been sent to " + user.getEmail());
+			 	modelAndView.setViewName("register");
 		}
 			
 		return modelAndView;
@@ -110,7 +92,6 @@ public class RegisterController {
 		} else { // Token found
 			modelAndView.addObject("confirmationToken", user.getConfirmationToken());
 		}
-			
 		modelAndView.setViewName("confirm");
 		return modelAndView;		
 	}
@@ -135,7 +116,7 @@ public class RegisterController {
 			System.out.println(requestParams.get("token"));
 			return modelAndView;
 		}
-	
+		
 		// Find the user associated with the reset token
 		User user = userService.findByConfirmationToken(requestParams.get("token"));
 
@@ -150,25 +131,7 @@ public class RegisterController {
 		
 		modelAndView.addObject("successMessage", "Your password has been set!");
 		return modelAndView;		
-	}
-	
-	/*@RequestMapping(value="/login", method = RequestMethod.GET)
-	public ModelAndView showLoginPage(ModelAndView modelAndView,User user) { 
-		modelAndView.addObject("user", user);
-		modelAndView.setViewName("login");
-		return modelAndView;
-	}
-	
-	// Process form input data
-		@RequestMapping(value = "/login", method = RequestMethod.POST)
-		public ModelAndView processLoginForm(ModelAndView modelAndView, @Valid User user, BindingResult bindingResult,
-				HttpServletRequest request) {
-			
-			
-			return modelAndView;
-			
-		}*/
-	
+	}	
 }
 
 

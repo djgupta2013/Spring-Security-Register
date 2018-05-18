@@ -16,7 +16,9 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 		http.authorizeRequests().antMatchers("/register").permitAll()
 		.antMatchers("/confirm").permitAll()
 		.antMatchers("/login").permitAll()
-		.antMatchers("/success").permitAll();
+		.antMatchers("/success").permitAll()
+		.antMatchers("/emailVarify").permitAll()
+		.antMatchers("/forgotPass").permitAll();
 	}
 	 @Bean
 	  public BCryptPasswordEncoder passwordEncoder() {
